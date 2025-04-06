@@ -1,3 +1,4 @@
+import re
 import time
 import datetime
 from selenium import webdriver
@@ -27,6 +28,14 @@ class Parse4Brewers:
         page_source = self._driver.page_source
         return BeautifulSoup(page_source, 'html.parser')
 
+    def normalize_address(self, address):
+        # Удаляем "- " в начале строки
+        address = re.sub(r'^\s*-\s*', '', address.strip())
+        # Удаляем лишние пробелы
+        address = ' '.join(address.split())
+        # Приводим к нижнему регистру для унификации
+        return address.lower()
+
     # Основная логика - обрабатывает страницу сорта пива
     def _process_page(self, beer_title, beer_element):
         # Подлогика основной логики. Находит на странице пива элементы-карточки магазинов, в которых пиво находится
@@ -41,7 +50,8 @@ class Parse4Brewers:
                                                                      "").strip()
                     date_parsed = dateparser.parse(cleaned_text, languages=['ru'])
                     for address in beer_adr:
-                        insert_beer(city_table_object, beer_name, beer_place[i].text + " " + address.text,
+                        insert_beer(city_table_object, beer_name,
+                                    beer_place[i].text.strip() + " " + self.normalize_address(address.text),
                                     date_parsed.date(), beer_sort)
 
         # Возвращает ссылку на пиво
@@ -104,7 +114,7 @@ class Parse4Brewers:
 
 # Это скорее демонстрация, думаю, её не нужно выносить в отдельный файл
 def main():
-    parsers = [Parse4Brewers('Воронеж'), Parse4Brewers('Белгород'), Parse4Brewers('Москва')]
+    parsers = [Parse4Brewers('Москва')]
     for parser in parsers: parser.run_parser()
 
 

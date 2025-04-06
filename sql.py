@@ -72,6 +72,7 @@ def insert_beer(beer_table, beer_name, beer_adr, beer_arr_time, sort, cur_date=d
             if prev_arr_time == beer_arr_time:
                 return
             else:
+                conn.execute(insert_changes(beer_name, beer_adr, prev_arr_time, beer_arr_time, f'{beer_table}'))
                 # Если нет - то удаляем старую запись, и вставляем новую, изменение фиксируем в таблицу с изменениями
                 delete_stmt = delete(beer_table).where(
                     and_(
@@ -90,7 +91,6 @@ def insert_beer(beer_table, beer_name, beer_adr, beer_arr_time, sort, cur_date=d
                     sort=sort
                 )
                 conn.execute(insert_stmt)
-                conn.execute(insert_changes(beer_name, beer_adr, prev_arr_time, beer_arr_time, f'{beer_table}'))
 
         # Если нет - то добавляем запись с нуля
         else:

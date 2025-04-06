@@ -11,4 +11,4 @@ def start_point():
 
 # В целом, каждые 2 часа - даже более чем достаточно
 if __name__ == '__main__':
-    start_point.serve(name='4brewers_parser', cron='* */2 * * *')
+    start_point.serve(name='4brewers_parser', cron='0 */2 * * *')
