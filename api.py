@@ -1,6 +1,5 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI
 import sql
 from sqlalchemy import Table
 
@@ -8,10 +7,6 @@ city = 'Москва'
 app = FastAPI()
 beer_table = Table(city, sql.metadata_obj, autoload_with=sql.engine)
 
-
-class NewBook(BaseModel):
-    title: str
-    author: str
 
 @app.get('/{city_name}')
 async def set_city(city_name):
