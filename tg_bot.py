@@ -112,7 +112,6 @@ async def send_beer_page(update: Update, context: ContextTypes.DEFAULT_TYPE, pag
         )
 
 async def beer_info_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print('Вошли')
     query = update.callback_query
     await query.answer()
 
@@ -120,14 +119,12 @@ async def beer_info_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
         beer_index = int(query.data.split('_', 1)[1])
         beer_names = context.user_data.get('beer_names', [])
         beer_name = beer_names[beer_index]['name']
-        print('тут')
 
     except (ValueError, IndexError):
         await query.edit_message_text(text='Ошибка при выборе пива')
         return
 
     api_url = f'http://127.0.0.1:8000/beers/{beer_name}'
-    print(api_url)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(api_url)
@@ -159,8 +156,7 @@ async def page_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_beer_page(update, context, page)
 
 async def get_beer_by_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print(context.args)
-    api_url = f'http://127.0.0.1:8000/beers/{' '.join(i for i in context.args)}'
+    api_url = f'http://127.0.0.1:8000/beers/{' '.join(i for i in context.args[:-1])}?sort_order={context.args[-1]}'
 
     if not context.args:
         await context.bot.send_message(
@@ -169,21 +165,20 @@ async def get_beer_by_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     try:
-        # Используем асинхронный httpx вместо синхронного requests
         async with httpx.AsyncClient() as client:
             response = await client.get(api_url)
-            response.raise_for_status()  # Проверяем на ошибки HTTP
+            response.raise_for_status()
             beers = response.json()
 
+            text = f"Пиво: {beers[0]['name']}\n"
             for beer in beers:
-                # Исправляем кавычки в f-строке
-                await context.bot.send_message(
+                text += (f"По адресу: {beer['address']}\n"
+                         f"Последний раз поставлялось - {beer['last_arr_time']}\n")
+            await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=f"Пиво: {beer['name']} \n"
-                         f"По адресу - {beer['address']} \n"
-                         f"Последний раз поставлялось - {beer['last_arr_time']}"
+                    text=text
+            )
 
-                )
             if len(beers) < 1:
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
