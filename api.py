@@ -1,19 +1,17 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
 import sql
 from sqlalchemy import Table
 
+#Данные по умолчанию
 city = 'Москва'
 app = FastAPI()
 beer_table = Table
 
-
-class NewBook(BaseModel):
-    title: str
-    author: str
-
-@app.get('/{city_name}')
+# Данная ручка устанавливает город, в котором будем искать пиво
+@app.get('/{city_name}', summary='Выбрать город в БД', description='Устанавливает введенный пользователем '
+                                                                   'город в качестве города для поиска')
 async def set_city(city_name):
     global city
     city = city_name
@@ -21,15 +19,20 @@ async def set_city(city_name):
     beer_table = Table(city, sql.metadata_obj, autoload_with=sql.engine)
     return {'city': city}
 
-@app.get('/beers/names')
+# Данная ручка выводит список названий всех сортов пива + номер сорта
+@app.get('/beers/names', summary='Вывести список названий', description='Выводит список актуальных '
+                                                                        'названий сортов пива в БД')
 async def get_beer_names():
     return sql.get_names(beer_table)
 
-@app.get('/beers/{beer_name}')
+# Данная ручка отвечает за поименный поиск пива и вывод результатов поиска
+@app.get('/beers/{beer_name}', summary='Поиск точек с пивом по названию + код', description='Выводит список '
+                                                                                            'магазинов, в которых '
+                                                                                            'можно найти пиво')
 async def get_beers_by_name(beer_name: str):
     print(beer_name)
     return sql.select_data(beer_table, beer_name)
 
-
+# Запуск через интерпретатор
 if __name__ == '__main__':
     uvicorn.run('api:app', reload=True)
