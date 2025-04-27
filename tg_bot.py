@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
@@ -25,7 +24,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                                                           f"\nМосква, Белгород, Владимир\n"
                                                                           "/get_names - выводит список актуальных "
                                                                           "сортов\n"
-                                                                          "/get_beer_by_name {Название сорта} - "
+                                                                          "/show_me {Название сорта} - "
                                                                           "выводит список адресов, где можно найти"
                                                                           "пиво данного сорта")
 
