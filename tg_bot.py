@@ -196,8 +196,8 @@ async def get_beer_by_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text += (f"По адресу: {beer['address']}\n"
                          f"Последний раз поставлялось - {beer['last_arr_time']}\n")
             await context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=text
+                chat_id=update.effective_chat.id,
+                text=text
             )
 
             if len(beers) < 1:

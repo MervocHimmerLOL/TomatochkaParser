@@ -103,17 +103,18 @@ def insert_beer(beer_table, beer_name, beer_adr, beer_arr_time, sort, cur_date=d
             conn.execute(insert_stmt)
         conn.commit()
 
+
 def get_names(beer_table):
     with engine.connect() as conn:
         cmd = select(distinct(beer_table.c.name), beer_table.c.sort)
         res = conn.execute(cmd).fetchall()
-    print(res)
     return [
         {
             'name': f'{row.name} {row.sort[-3:]}'
         }
         for row in res
     ]
+
 
 def select_data(beer_table, target_name, sort_order='desc'):
     name_part = target_name[:-4]
