@@ -6,7 +6,7 @@ from sqlalchemy import Table
 
 city = 'Москва'
 app = FastAPI()
-beer_table = Table
+beer_table = Table(city, sql.metadata_obj, autoload_with=sql.engine)
 
 
 class NewBook(BaseModel):
