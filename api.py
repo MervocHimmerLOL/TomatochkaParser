@@ -8,7 +8,6 @@ city = 'Москва'
 app = FastAPI()
 beer_table = Table(city, sql.metadata_obj, autoload_with=sql.engine)
 
-
 # Данная ручка устанавливает город, в котором будем искать пиво
 @app.get('/{city_name}', summary='Выбрать город в БД', description='Устанавливает введенный пользователем '
                                                                    'город в качестве города для поиска')
