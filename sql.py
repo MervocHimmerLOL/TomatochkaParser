@@ -1,9 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import create_engine, UniqueConstraint
 from sqlalchemy import MetaData
 from sqlalchemy import Table, Column, Integer, String, Date
-from sqlalchemy import insert, select, and_, delete
-import csv
+from sqlalchemy import insert, select, and_, delete, distinct
 
 # В данном файле у нас описывается логика базы данных, и её основные методы. Я думал, выносить ли все в отдельный класс,
 # но решил, что так будет лучше
@@ -103,3 +102,62 @@ def insert_beer(beer_table, beer_name, beer_adr, beer_arr_time, sort, cur_date=d
             )
             conn.execute(insert_stmt)
         conn.commit()
+
+def get_names(beer_table):
+    with engine.connect() as conn:
+        cmd = select(distinct(beer_table.c.name), beer_table.c.sort)
+        res = conn.execute(cmd).fetchall()
+    print(res)
+    return [
+        {
+            'name': f'{row.name} {row.sort[-3:]}'
+        }
+        for row in res
+    ]
+
+def select_data(beer_table, target_name):
+    name_part = target_name[:-4]
+    sort_part = target_name[-3:]
+
+    ten_days_ago = datetime.now() - timedelta(days=10)
+
+    with engine.connect() as conn:
+        # Первый запрос: за последние 10 дней
+        cmd = select(
+            beer_table.c.name,
+            beer_table.c.address,
+            beer_table.c.last_arr_time
+        ).where(
+            beer_table.c.name.like(name_part)
+        ).where(
+            beer_table.c.sort.like(f'%{sort_part}')
+        ).where(
+            beer_table.c.last_arr_time >= ten_days_ago
+        ).order_by(beer_table.c.last_arr_time.desc())
+
+        res = conn.execute(cmd).fetchall()
+
+        # Если пусто — запрашиваем всё
+        if not res:
+            cmd = select(
+                beer_table.c.name,
+                beer_table.c.address,
+                beer_table.c.last_arr_time
+            ).where(
+                beer_table.c.name.like(name_part)
+            ).where(
+                beer_table.c.sort.like(f'%{sort_part}')
+            ).where(
+                beer_table.c.last_arr_time > '1970-01-01'
+            ).limit(15).order_by(beer_table.c.last_arr_time.desc())
+
+            res = conn.execute(cmd).fetchall()
+
+    return [
+        {
+            "name": row.name,
+            "address": row.address,
+            "last_arr_time": row.last_arr_time.isoformat() if row.last_arr_time else None
+        }
+        for row in res
+    ]
