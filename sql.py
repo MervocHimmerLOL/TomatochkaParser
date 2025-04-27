@@ -115,11 +115,19 @@ def get_names(beer_table):
         for row in res
     ]
 
-def select_data(beer_table, target_name):
+def select_data(beer_table, target_name, sort_order='desc'):
     name_part = target_name[:-4]
     sort_part = target_name[-3:]
 
     ten_days_ago = datetime.now() - timedelta(days=10)
+
+    if sort_order not in ('asc', 'desc'):
+        sort_order = 'desc'
+
+    if sort_order == 'desc':
+        order = beer_table.c.last_arr_time.desc()
+    elif sort_order == 'asc':
+        order = beer_table.c.last_arr_time.asc()
 
     with engine.connect() as conn:
         # Первый запрос: за последние 10 дней
@@ -133,7 +141,7 @@ def select_data(beer_table, target_name):
             beer_table.c.sort.like(f'%{sort_part}')
         ).where(
             beer_table.c.last_arr_time >= ten_days_ago
-        ).order_by(beer_table.c.last_arr_time.desc())
+        ).order_by(order).limit(10)
 
         res = conn.execute(cmd).fetchall()
 
@@ -149,7 +157,7 @@ def select_data(beer_table, target_name):
                 beer_table.c.sort.like(f'%{sort_part}')
             ).where(
                 beer_table.c.last_arr_time > '1970-01-01'
-            ).limit(15).order_by(beer_table.c.last_arr_time.desc())
+            ).limit(10).order_by(order)
 
             res = conn.execute(cmd).fetchall()
 

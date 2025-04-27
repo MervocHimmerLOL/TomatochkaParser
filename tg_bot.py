@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
@@ -175,8 +176,7 @@ async def page_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Команда для поиска вручную, без кнопок, логика - почти та же, только отправляет сообщения поштучно
 async def get_beer_by_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print(context.args)
-    api_url = f'http://127.0.0.1:8000/beers/{' '.join(i for i in context.args)}'
+    api_url = f'http://127.0.0.1:8000/beers/{' '.join(i for i in context.args[:-1])}?sort_order={context.args[-1]}'
 
     if not context.args:
         await context.bot.send_message(
@@ -190,14 +190,15 @@ async def get_beer_by_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
             response.raise_for_status()
             beers = response.json()
 
+            text = f"Пиво: {beers[0]['name']}\n"
             for beer in beers:
-                await context.bot.send_message(
+                text += (f"По адресу: {beer['address']}\n"
+                         f"Последний раз поставлялось - {beer['last_arr_time']}\n")
+            await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=f"Пиво: {beer['name']} \n"
-                         f"По адресу - {beer['address']} \n"
-                         f"Последний раз поставлялось - {beer['last_arr_time']}"
+                    text=text
+            )
 
-                )
             if len(beers) < 1:
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id,
