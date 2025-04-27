@@ -1,5 +1,4 @@
 import uvicorn
-from fastapi import FastAPI
 from fastapi import FastAPI, Query
 import sql
 from sqlalchemy import Table
@@ -25,11 +24,12 @@ async def set_city(city_name: str):
                                                                         'названий сортов пива в БД')
 async def get_beer_names():
     return sql.get_names(beer_table)
-# Данная ручка отвечает за поименный поиск пива и вывод результатов поиска
+# Данная ручка отвечает за поименный поиск пива и вывод результатов поиска, так же, имеет возможность указать
+# кастомную сортировку
 @app.get('/beers/{beer_name}', summary='Поиск точек с пивом по названию + код', description='Выводит список '
                                                                                             'магазинов, в которых '
                                                                                             'можно найти пиво')
-async def get_beers_by_name(beer_name: str):
+async def get_beers_by_name(beer_name: str, sort_order: str = Query('desc')):
     return sql.select_data(beer_table, beer_name, sort_order)
 
 # Запуск через интерпретатор
